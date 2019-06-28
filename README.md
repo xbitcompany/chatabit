@@ -10,8 +10,8 @@ Roadmap:
 - Add WebRTC webcall and Co-Browsing features
 - much more, stay tuned...
 
-###web: https://x-b.it
-###twitter: https://twitter.com/xbitsocial
+### web: https://x-b.it
+### twitter: https://twitter.com/xbitsocial
 
-(c) 2019 x-b.it
+chat-a-bit (c) 2019 x-b.it open contributors
 
