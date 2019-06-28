@@ -13,5 +13,5 @@ Roadmap:
 ### web: https://x-b.it
 ### twitter: https://twitter.com/xbitsocial
 
-chat-a-bit (c) 2019 x-b.it open contributors
+chat-a-bit (c) 2019 x-b.it open source contributors
 
