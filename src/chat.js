@@ -15,9 +15,47 @@ window.xbc = {
         xbc.session.obj = { active: false, xid: xbc.session.create(), pagestarted: Date.now() };
         //check session status
         xbc.session.check();
+        pageUrl = window.btoa(document.location.hostname + document.location.pathname);
         xbc.api.query(xbc.api.getpageparams,{ page: document.location.href }, function(error,response){
+            console.log(response);
+            xbc.storage.page = xbc.storage.getPage(pageUrl);
+            //check if current page views are past page views
+            if(xbc.storage.page.views >= response.views){
+                console.log('opening chat')
+            }
+            else {
+                //put timer to open chat
+                xbc.tmr = setTimeout(xbc.ui.open,response.seconds*1000);
+            }
 
         });
+    },
+    ui: {
+        open: function(){
+            console.log('opening chat by ui')
+        }
+    },
+    storage: {
+        getPage: function(url){
+            page = localStorage.getItem(url);
+            if(page === null){
+                page = {views: 0, starttime: Date.now()};
+                localStorage.setItem(url,JSON.stringify(page));
+            }
+            else {
+                page = JSON.parse(page);
+                if((Date.now()-page.starttime) < 3600000){
+                    page.views += 1;
+                    localStorage.setItem(url,JSON.stringify(page));
+                }
+                else {
+                    //session expired
+                    page = {views: 0, starttime: Date.now()};
+                    localStorage.setItem(url,JSON.stringify(page));
+                }
+            }
+            return page;
+        }
     },
     session: {
         create: function(){
@@ -55,7 +93,7 @@ window.xbc = {
         }
     },
     api: {
-        endpoint: 'http://127.0.0.1:3000/api',
+        endpoint: 'http://127.0.0.1:8000/api',
         getpageparams: '/getpageparams',
         query: function(url,params,callback){
             try {
@@ -63,7 +101,7 @@ window.xbc = {
                 //add endpoint base url
                 url = xbc.api.endpoint + url;
                 request.open('POST', url, true);
-                request.setRequestHeader('Content-Type', 'text/json; charset=UTF-8');
+                request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
                 request.responseType = 'json';
                 request.onload = function(e) {
                     if (this.status == 200) {
