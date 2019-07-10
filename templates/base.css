@@ -1,0 +1,11 @@
+#xbitChat {
+    position: fixed;
+    bottom: 5px;
+    right: 5px;
+}
+
+.xbc-invite {
+    width: 150px;
+    height: 80px;
+    background-color: aqua;
+}

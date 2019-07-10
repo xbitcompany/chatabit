@@ -17,29 +17,46 @@ window.xbc = {
         xbc.session.check();
         pageUrl = window.btoa(document.location.hostname + document.location.pathname);
         xbc.api.query(xbc.api.getpageparams,{ page: document.location.href }, function(error,response){
-            console.log(response);
-            xbc.storage.page = xbc.storage.getPage(pageUrl);
-            //check if current page views are past page views
-            if(xbc.storage.page.views >= response.views){
-                console.log('opening chat')
+            if(response.status === 404){
+                console.log('chat inactive on this page.');
             }
-            else {
-                //put timer to open chat
-                xbc.tmr = setTimeout(xbc.ui.open,response.seconds*1000);
+            else if(response.status === 200){
+                console.log(response);
+                xbc.storage.page = xbc.storage.getPage(pageUrl);
+                //check if current page views are past page views
+                if(xbc.storage.page.views >= response.views){
+                    console.log('opening chat');
+                    xbc.ui.open();
+                }
+                else {
+                    //put timer to open chat
+                    xbc.tmr = setTimeout(xbc.ui.open,response.seconds*1000);
+                }
             }
-
         });
     },
     ui: {
         open: function(){
-            console.log('opening chat by ui')
+            console.log('opening chat by ui');
+            xbc.dom.inject('/templates/index.html',(error) => {
+                if(error){
+                    //TODO: error management
+                    console.log('err');
+                }
+                else {
+                    xbc.ui.setInviteDialog();
+                }
+            });
+        },
+        setInviteDialog: function(){
+            document.getElementById('xbitChat').className = 'xbc-invite';
         }
     },
     storage: {
         getPage: function(url){
             page = localStorage.getItem(url);
             if(page === null){
-                page = {views: 0, starttime: Date.now()};
+                page = {views: 1, starttime: Date.now()};
                 localStorage.setItem(url,JSON.stringify(page));
             }
             else {
@@ -110,6 +127,27 @@ window.xbc = {
                     }
                 };
                 request.send(JSON.stringify(params));
+            }
+            catch(e){
+                callback(true);
+            }
+        }
+    },
+    dom: {
+        inject: function(address,callback){
+            try {
+                request = new XMLHttpRequest();
+                request.open('GET', address, true);
+                request.responseType = 'text';
+                request.onload = function(e) {
+                    if (this.status == 200) {
+                        document.body.innerHTML += this.response;
+                        callback(false);
+                    } else {
+                        callback(true);
+                    }
+                }
+                request.send();
             }
             catch(e){
                 callback(true);
