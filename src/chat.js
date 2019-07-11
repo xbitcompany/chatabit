@@ -23,14 +23,15 @@ window.xbc = {
             else if(response.status === 200){
                 console.log(response);
                 xbc.storage.page = xbc.storage.getPage(pageUrl);
+                xbc.storage.page.configuration = response;
                 //check if current page views are past page views
-                if(xbc.storage.page.views >= response.views){
+                if(xbc.storage.page.views >= xbc.storage.page.configuration.views){
                     console.log('opening chat');
                     xbc.ui.open();
                 }
                 else {
                     //put timer to open chat
-                    xbc.tmr = setTimeout(xbc.ui.open,response.seconds*1000);
+                    xbc.tmr = setTimeout(xbc.ui.open,xbc.storage.page.configuration.seconds*1000);
                 }
             }
         });
@@ -44,12 +45,44 @@ window.xbc = {
                     console.log('err');
                 }
                 else {
+                    xbc.dom.attachEvents();
                     xbc.ui.setInviteDialog();
                 }
             });
         },
+        close: function(){
+            console.log('closing chat');
+            if(event){
+                event.stopPropagation();
+            }
+        },
+        onClick: function(){
+            console.log('stage: '+ document.getElementById('xbitChat').className);
+            //if we are in invite stage
+            if(document.getElementById('xbitChat').className === 'xbc-invite'){
+                //if we have inputs that user should insert
+                if(xbc.storage.page.configuration.inputs.length > 0){
+                    //require some infos
+                    console.log(xbc.storage.page.configuration.inputs);
+
+                    xbc.ui.setInputDialog();
+                }
+                else {
+                    //going to chat stage
+
+                }
+            }
+        },
         setInviteDialog: function(){
+            document.getElementById('xbc-invite-ui').style.display = 'block';
+            document.getElementById('xbc-input-ui').style.display = 'none';
             document.getElementById('xbitChat').className = 'xbc-invite';
+        },
+        setInputDialog: function(){
+            xbc.dom.addInputs();
+            document.getElementById('xbc-invite-ui').style.display = 'none';
+            document.getElementById('xbc-input-ui').style.display = 'block';
+            document.getElementById('xbitChat').className = 'xbc-inputs';
         }
     },
     storage: {
@@ -152,6 +185,39 @@ window.xbc = {
             catch(e){
                 callback(true);
             }
+        },
+        attachEvents: function(){
+            document.getElementById('xbitChat').onclick = xbc.ui.onClick;
+        },
+        addInputs: function(){
+            
+            xbc.storage.page.configuration.inputs.forEach((inputItem,index) => {
+                var newInput = document.createElement("input");
+                //input type email
+                if(inputItem.type === 'email'){
+                    newInput.setAttribute('type', 'text');
+                    newInput.setAttribute('class', 'xbc-input-data');
+                    if(inputItem.name){
+                        newInput.setAttribute('id', inputItem.name);
+                    }
+                    if(inputItem.placeholder){
+                        newInput.setAttribute('placeholder', inputItem.placeholder);
+                    }
+                }
+                //input type submit
+                else  if(inputItem.type === 'submit'){
+                    newInput.setAttribute('type', 'button');
+                    newInput.setAttribute('class', 'xbc-input-data');
+                    if(inputItem.name){
+                        newInput.setAttribute('id', inputItem.name);
+                    }
+                    if(inputItem.text){
+                        newInput.setAttribute('value', inputItem.text);
+                    }
+                }
+
+                document.getElementById('xbc-input-ui').appendChild(newInput);
+            });
         }
     }
 };
